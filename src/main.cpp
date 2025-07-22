@@ -194,10 +194,55 @@ int main(void)
 		DrawCube((Vector3){0.0f, 2.5f, 16.0f}, 32.0f, 5.0f, 1.0f, GOLD);			// Draw a yellow wall
 
 		// Draw some cubes around
+		/*
 		for (int i = 0; i < MAX_COLUMNS; i++)
 		{
 			DrawCube(positions[i], 2.0f, heights[i], 2.0f, colors[i]);
 			DrawCubeWires(positions[i], 2.0f, heights[i], 2.0f, MAROON);
+		}
+		*/
+
+		DrawCube((Vector3){0.0f, 1.0f, 0.0f}, 2.0f, 2.0f, 2.0f, BLUE);
+		DrawCubeWires((Vector3){0.0f, 1.0f, 0.0f}, 2.0f, 2.0f, 2.0f, DARKGRAY);
+
+		BoundingBox playerBoundingBox = (BoundingBox){(Vector3){player.getCamera().position.x - 0.25f,
+																player.getCamera().position.y - 0.5f,
+																player.getCamera().position.z - 0.25f},
+													  (Vector3){player.getCamera().position.x + 0.25f,
+																player.getCamera().position.y + 0.5f,
+																player.getCamera().position.z + 0.25f}};
+
+		BoundingBox objectBoundingBox = (BoundingBox){(Vector3){0.0f - 1.0f,
+																1.0f - 1.0f,
+																0.0f - 1.0f},
+													  (Vector3){0.0f + 1.0f,
+																1.0f + 1.0f,
+																0.0f + 1.0f}};
+
+		bool collision = CheckCollisionBoxes(playerBoundingBox, objectBoundingBox);
+
+		if (collision)
+		{
+			DrawCubeWires((Vector3){player.getCamera().position.x, 1.0f, player.getCamera().position.z}, 0.5f, 2.0f, 0.5f, RED);
+			Vector3 invertedMovement = (Vector3){
+				player.getLastMovement().x * -1,
+				player.getLastMovement().y * -1,
+				player.getLastMovement().z * -1,
+			};
+			UpdateCameraPro(
+				player.getCameraPointer(),
+				invertedMovement,
+				(Vector3){
+					0.0f, // Rotation: yaw
+					0.0f, // Rotation: pitch
+					0.0f  // Rotation: roll
+				},
+				0.0f // Move to target (zoom)
+			);
+		}
+		else
+		{
+			DrawCubeWires((Vector3){player.getCamera().position.x, 1.0f, player.getCamera().position.z}, 0.5f, 2.0f, 0.5f, DARKGRAY);
 		}
 
 		/* Draw player cube

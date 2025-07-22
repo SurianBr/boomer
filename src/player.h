@@ -26,11 +26,15 @@ private:
     float stanceBuffer;
     float stanceTimer;
 
+    Vector3 lastMovement;
+
 public:
     Player();
     Camera getCamera();
+    Camera * getCameraPointer();
     void updateCamera(float frameTime);
     float updateStance(float frameTime);
+    Vector3 getLastMovement();
 };
 
 #endif // PLAYER_H

@@ -29,6 +29,16 @@ Camera Player::getCamera()
     return camera;
 }
 
+Camera * Player::getCameraPointer()
+{
+    return &camera;
+}
+
+Vector3 Player::getLastMovement()
+{
+    return lastMovement;
+}
+
 void Player::updateCamera(float frameTime)
 {
 
@@ -36,6 +46,8 @@ void Player::updateCamera(float frameTime)
     movement.x = IsKeyDown(KEY_W) * walkingVelocity - IsKeyDown(KEY_S) * walkingVelocity;
     movement.y = IsKeyDown(KEY_D) * walkingVelocity - IsKeyDown(KEY_A) * walkingVelocity;
     movement.z = updateStance(frameTime);
+
+    lastMovement = movement;
 
     UpdateCameraPro(
         &camera,
