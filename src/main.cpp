@@ -1,6 +1,7 @@
 
 #include "raylib.h"
 #include "rcamera.h"
+#include "raymath.h"
 #include "player.h"
 
 #define MAX_COLUMNS 20
@@ -221,14 +222,77 @@ int main(void)
 
 		bool collision = CheckCollisionBoxes(playerBoundingBox, objectBoundingBox);
 
+
+		Vector3 test = (Vector3){0.0f, 1.0f, 0.0f};
+
+		Vector3 direction = Vector3Subtract(
+			test,
+			player.getCamera().position
+		);
+
+		Vector3 directionNormalized = Vector3Normalize(direction);
+
+		Ray ray = (Ray){(Vector3){player.getCamera().position.x,
+								  1.0f,
+								  player.getCamera().position.z},
+						direction};
+
+		RayCollision collisionInfo = GetRayCollisionBox(ray, objectBoundingBox);
+
+		DrawCube(collisionInfo.point, 0.1f, 0.1f, 0.1f, BLACK);
+		//DrawPoint3D(collisionInfo.point, BLACK);
+
+		DrawRay(ray, RED);
+		
+		/*
+		Vector3 playerPos = player.getCamera().position;
+		Vector3 cubePos = (Vector3){0.0f, 1.0f, 0.0f}; // Example: center of the blue cube
+
+		Vector3 direction = Vector3Normalize((Vector3){
+			cubePos.x - playerPos.x,
+			cubePos.y - playerPos.y,
+			cubePos.z - playerPos.z});
+
+		Ray ray = {playerPos, direction};
+
+		DrawRay(ray, RED);
+		*/
 		if (collision)
 		{
+			Vector3 movement = player.getLastMovement();
+
+			// Calculate overlaps
+			float overlapX = fmin(playerBoundingBox.max.x, objectBoundingBox.max.x) - fmax(playerBoundingBox.min.x, objectBoundingBox.min.x);
+			float overlapY = fmin(playerBoundingBox.max.y, objectBoundingBox.max.y) - fmax(playerBoundingBox.min.y, objectBoundingBox.min.y);
+			float overlapZ = fmin(playerBoundingBox.max.z, objectBoundingBox.max.z) - fmax(playerBoundingBox.min.z, objectBoundingBox.min.z);
+
+			// Find the axis with the smallest overlap
+			float minOverlap = overlapX;
+			char axis = 'x';
+			if (overlapY < minOverlap) { minOverlap = overlapY; axis = 'y'; }
+			if (overlapZ < minOverlap) { minOverlap = overlapZ; axis = 'z'; }
+
+			// Determine direction
+			if (axis == 'x') {
+				player.getCameraPointer()->position.x = collisionInfo.point.x;
+			}
+			else if (axis == 'y') {
+				if (movement.y > 0) { /* Collision from below */ }
+				else if (movement.y < 0) { /* Collision from above */ }
+			}
+			else if (axis == 'z') {
+				player.getCameraPointer()->position.y = collisionInfo.point.z;
+				if (movement.z > 0) { /* Collision from back */ }
+				else if (movement.z < 0) { /* Collision from front */ }
+			}
+
 			DrawCubeWires((Vector3){player.getCamera().position.x, 1.0f, player.getCamera().position.z}, 0.5f, 2.0f, 0.5f, RED);
 			Vector3 invertedMovement = (Vector3){
 				player.getLastMovement().x * -1,
 				player.getLastMovement().y * -1,
 				player.getLastMovement().z * -1,
 			};
+			/*
 			UpdateCameraPro(
 				player.getCameraPointer(),
 				invertedMovement,
@@ -239,6 +303,7 @@ int main(void)
 				},
 				0.0f // Move to target (zoom)
 			);
+			*/
 		}
 		else
 		{
