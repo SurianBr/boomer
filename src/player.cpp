@@ -57,7 +57,7 @@ void Player::updateCamera(float frameTime)
             GetMouseDelta().y * mouseVelocity, // Rotation: pitch
             0.0f                               // Rotation: roll
         },
-        GetMouseWheelMove() * 2.0f // Move to target (zoom)
+        0.0f //GetMouseWheelMove() * 2.0f // Move to target (zoom)
     );
 }
 

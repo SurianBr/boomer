@@ -3,7 +3,7 @@
 #include "rcamera.h"
 #include "raymath.h"
 #include "player.h"
-
+#include <stdio.h>
 #define MAX_COLUMNS 20
 
 //------------------------------------------------------------------------------------
@@ -204,7 +204,7 @@ int main(void)
 		*/
 
 		DrawCube((Vector3){0.0f, 1.0f, 0.0f}, 2.0f, 2.0f, 2.0f, BLUE);
-		DrawCubeWires((Vector3){0.0f, 1.0f, 0.0f}, 2.0f, 2.0f, 2.0f, DARKGRAY);
+		//DrawCubeWires((Vector3){0.0f, 1.0f, 0.0f}, 2.0f, 2.0f, 2.0f, DARKGRAY);
 
 		BoundingBox playerBoundingBox = (BoundingBox){(Vector3){player.getCamera().position.x - 0.25f,
 																player.getCamera().position.y - 0.5f,
@@ -220,15 +220,43 @@ int main(void)
 																1.0f + 1.0f,
 																0.0f + 1.0f}};
 
-		bool collision = CheckCollisionBoxes(playerBoundingBox, objectBoundingBox);
+		BoundingBox objectBoundingBoxM = (BoundingBox){(Vector3){0.0f - 1.0f - 0.25f,
+																1.0f - 1.0f - 0.5f,
+																0.0f - 1.0f - 0.25f},
+													  (Vector3){0.0f + 1.0f + 0.25f,
+																1.0f + 1.0f + 0.5f,
+																0.0f + 1.0f + 0.25f}};
 
+		
+		DrawBoundingBox(objectBoundingBox, BLUE);
+
+		DrawBoundingBox(objectBoundingBoxM, RED);
+
+		/*
+		// Calculate Minkowski sum of playerBoundingBox and objectBoundingBox
+		Vector3 playerCenter = Vector3Scale(Vector3Add(playerBoundingBox.min, playerBoundingBox.max), 0.5f);
+		Vector3 objectCenter = Vector3Scale(Vector3Add(objectBoundingBox.min, objectBoundingBox.max), 0.5f);
+
+		Vector3 playerHalfSize = Vector3Scale(Vector3Subtract(playerBoundingBox.max, playerBoundingBox.min), 0.5f);
+		Vector3 objectHalfSize = Vector3Scale(Vector3Subtract(objectBoundingBox.max, objectBoundingBox.min), 0.5f);
+
+		Vector3 minkowskiCenter = Vector3Add(playerCenter, objectCenter);
+		Vector3 minkowskiHalfSize = Vector3Add(playerHalfSize, objectHalfSize);
+
+		BoundingBox minkowskiSum = {
+			Vector3Subtract(minkowskiCenter, minkowskiHalfSize),
+			Vector3Add(minkowskiCenter, minkowskiHalfSize)};
+
+		// Optionally, draw the Minkowski sum box for visualization
+		DrawBoundingBox(minkowskiSum, BLACK);
+		*/
+		bool collision = CheckCollisionBoxes(playerBoundingBox, objectBoundingBox);
 
 		Vector3 test = (Vector3){0.0f, 1.0f, 0.0f};
 
 		Vector3 direction = Vector3Subtract(
 			test,
-			player.getCamera().position
-		);
+			player.getCamera().position);
 
 		Vector3 directionNormalized = Vector3Normalize(direction);
 
@@ -240,10 +268,14 @@ int main(void)
 		RayCollision collisionInfo = GetRayCollisionBox(ray, objectBoundingBox);
 
 		DrawCube(collisionInfo.point, 0.1f, 0.1f, 0.1f, BLACK);
-		//DrawPoint3D(collisionInfo.point, BLACK);
+		// DrawPoint3D(collisionInfo.point, BLACK);
 
 		DrawRay(ray, RED);
-		
+
+		RayCollision collisionInfo2 = GetRayCollisionBox(ray, objectBoundingBoxM);
+
+		DrawCube(collisionInfo2.point, 0.1f, 0.1f, 0.1f, DARKBROWN);
+
 		/*
 		Vector3 playerPos = player.getCamera().position;
 		Vector3 cubePos = (Vector3){0.0f, 1.0f, 0.0f}; // Example: center of the blue cube
@@ -257,6 +289,30 @@ int main(void)
 
 		DrawRay(ray, RED);
 		*/
+
+		if (IsKeyDown(KEY_G))
+		{
+
+			Vector3 direction = Vector3Subtract(
+			collisionInfo2.point,
+			player.getCamera().position);
+
+			direction.y = 0.0f;
+
+			printf("TESTE: (%.2f, %.2f, %.2f)\n", direction.x, direction.y, direction.z);
+
+			UpdateCameraPro(
+				player.getCameraPointer(),
+				Vector3Normalize(direction),
+				(Vector3){
+					0.0f, // Rotation: yaw
+					0.0f, // Rotation: pitch
+					0.0f  // Rotation: roll
+				},
+				0.0f // Move to target (zoom)
+			);
+		}
+
 		if (collision)
 		{
 			Vector3 movement = player.getLastMovement();
@@ -269,30 +325,58 @@ int main(void)
 			// Find the axis with the smallest overlap
 			float minOverlap = overlapX;
 			char axis = 'x';
-			if (overlapY < minOverlap) { minOverlap = overlapY; axis = 'y'; }
-			if (overlapZ < minOverlap) { minOverlap = overlapZ; axis = 'z'; }
+			if (overlapY < minOverlap)
+			{
+				minOverlap = overlapY;
+				axis = 'y';
+			}
+			if (overlapZ < minOverlap)
+			{
+				minOverlap = overlapZ;
+				axis = 'z';
+			}
 
 			// Determine direction
-			if (axis == 'x') {
-				player.getCameraPointer()->position.x = collisionInfo.point.x;
+			if (axis == 'x')
+			{
+				//player.getCameraPointer()->position.x = collisionInfo2.point.x;
+				printf("x\n");
+				// player.getCameraPointer()->position.x = collisionInfo.point.x;
 			}
-			else if (axis == 'y') {
-				if (movement.y > 0) { /* Collision from below */ }
-				else if (movement.y < 0) { /* Collision from above */ }
+			else if (axis == 'y')
+			{
+				printf("y\n");
+				if (movement.y > 0)
+				{ /* Collision from below */
+				}
+				else if (movement.y < 0)
+				{ /* Collision from above */
+				}
 			}
-			else if (axis == 'z') {
-				player.getCameraPointer()->position.y = collisionInfo.point.z;
-				if (movement.z > 0) { /* Collision from back */ }
-				else if (movement.z < 0) { /* Collision from front */ }
+			else if (axis == 'z')
+			{
+				//player.getCameraPointer()->position.z = collisionInfo2.point.z;
+				printf("z\n");
+				// player.getCameraPointer()->position.y = collisionInfo.point.z;
+				if (movement.z > 0)
+				{ /* Collision from back */
+				}
+				else if (movement.z < 0)
+				{ /* Collision from front */
+				}
 			}
 
-			DrawCubeWires((Vector3){player.getCamera().position.x, 1.0f, player.getCamera().position.z}, 0.5f, 2.0f, 0.5f, RED);
+			printf("Movement: (%.2f, %.2f, %.2f)\n", player.getLastMovement().x, player.getLastMovement().y, player.getLastMovement().z);
+			printf("collision Point: (%.2f, %.2f, %.2f)\n", collisionInfo.point.x, collisionInfo.point.y, collisionInfo.point.z);
+			printf("collision Point 2: (%.2f, %.2f, %.2f)\n", collisionInfo2.point.x, collisionInfo2.point.y, collisionInfo2.point.z);
+
+			/*
 			Vector3 invertedMovement = (Vector3){
 				player.getLastMovement().x * -1,
 				player.getLastMovement().y * -1,
 				player.getLastMovement().z * -1,
 			};
-			/*
+
 			UpdateCameraPro(
 				player.getCameraPointer(),
 				invertedMovement,
@@ -304,10 +388,11 @@ int main(void)
 				0.0f // Move to target (zoom)
 			);
 			*/
+			DrawBoundingBox(playerBoundingBox, RED);
 		}
 		else
 		{
-			DrawCubeWires((Vector3){player.getCamera().position.x, 1.0f, player.getCamera().position.z}, 0.5f, 2.0f, 0.5f, DARKGRAY);
+			DrawBoundingBox(playerBoundingBox, BLACK);
 		}
 
 		/* Draw player cube
