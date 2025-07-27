@@ -308,6 +308,7 @@ int main(void)
 					0.0f, // Rotation: yaw
 					0.0f, // Rotation: pitch
 					0.0f  // Rotation: roll
+					
 				},
 				0.0f // Move to target (zoom)
 			);
@@ -315,56 +316,36 @@ int main(void)
 
 		if (collision)
 		{
+
+			
 			Vector3 movement = player.getLastMovement();
+			
+			float intersectionMinX = fmax(playerBoundingBox.min.x, objectBoundingBox.min.x);
+			float intersectionMinY = fmax(playerBoundingBox.min.y, objectBoundingBox.min.y);
+			float intersectionMinZ = fmax(playerBoundingBox.min.z, objectBoundingBox.min.z);
 
-			// Calculate overlaps
-			float overlapX = fmin(playerBoundingBox.max.x, objectBoundingBox.max.x) - fmax(playerBoundingBox.min.x, objectBoundingBox.min.x);
-			float overlapY = fmin(playerBoundingBox.max.y, objectBoundingBox.max.y) - fmax(playerBoundingBox.min.y, objectBoundingBox.min.y);
-			float overlapZ = fmin(playerBoundingBox.max.z, objectBoundingBox.max.z) - fmax(playerBoundingBox.min.z, objectBoundingBox.min.z);
+			float intersectionMaxX = fmin(playerBoundingBox.max.x, objectBoundingBox.max.x);
+			float intersectionMaxY = fmin(playerBoundingBox.max.y, objectBoundingBox.max.y);
+			float intersectionMaxZ = fmin(playerBoundingBox.max.z, objectBoundingBox.max.z);
 
-			// Find the axis with the smallest overlap
-			float minOverlap = overlapX;
-			char axis = 'x';
-			if (overlapY < minOverlap)
-			{
-				minOverlap = overlapY;
-				axis = 'y';
-			}
-			if (overlapZ < minOverlap)
-			{
-				minOverlap = overlapZ;
-				axis = 'z';
-			}
+			Vector3 intersectionMin = (Vector3) {
+				intersectionMinX,
+				intersectionMinY,
+				intersectionMinZ
+			};
 
-			// Determine direction
-			if (axis == 'x')
-			{
-				//player.getCameraPointer()->position.x = collisionInfo2.point.x;
-				printf("x\n");
-				// player.getCameraPointer()->position.x = collisionInfo.point.x;
-			}
-			else if (axis == 'y')
-			{
-				printf("y\n");
-				if (movement.y > 0)
-				{ /* Collision from below */
-				}
-				else if (movement.y < 0)
-				{ /* Collision from above */
-				}
-			}
-			else if (axis == 'z')
-			{
-				//player.getCameraPointer()->position.z = collisionInfo2.point.z;
-				printf("z\n");
-				// player.getCameraPointer()->position.y = collisionInfo.point.z;
-				if (movement.z > 0)
-				{ /* Collision from back */
-				}
-				else if (movement.z < 0)
-				{ /* Collision from front */
-				}
-			}
+			Vector3 intersectionMax = (Vector3) {
+				intersectionMaxX,
+				intersectionMaxY,
+				intersectionMaxZ
+			};
+
+			BoundingBox intersectionBoundingBox = (BoundingBox) {
+				intersectionMin,
+				intersectionMax
+			};
+
+			DrawBoundingBox(intersectionBoundingBox, YELLOW);
 
 			printf("Movement: (%.2f, %.2f, %.2f)\n", player.getLastMovement().x, player.getLastMovement().y, player.getLastMovement().z);
 			printf("collision Point: (%.2f, %.2f, %.2f)\n", collisionInfo.point.x, collisionInfo.point.y, collisionInfo.point.z);
