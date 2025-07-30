@@ -203,7 +203,7 @@ int main(void)
 		}
 		*/
 
-		DrawCube((Vector3){0.0f, 1.0f, 0.0f}, 2.0f, 2.0f, 2.0f, BLUE);
+		//DrawCube((Vector3){0.0f, 1.0f, 0.0f}, 2.0f, 2.0f, 2.0f, BLUE);
 		//DrawCubeWires((Vector3){0.0f, 1.0f, 0.0f}, 2.0f, 2.0f, 2.0f, DARKGRAY);
 
 		BoundingBox playerBoundingBox = (BoundingBox){(Vector3){player.getCamera().position.x - 0.25f,
@@ -250,7 +250,7 @@ int main(void)
 		// Optionally, draw the Minkowski sum box for visualization
 		DrawBoundingBox(minkowskiSum, BLACK);
 		*/
-		bool collision = CheckCollisionBoxes(playerBoundingBox, objectBoundingBox);
+		//bool collision = CheckCollisionBoxes(playerBoundingBox, objectBoundingBox);
 
 		Vector3 test = (Vector3){0.0f, 1.0f, 0.0f};
 
@@ -290,43 +290,40 @@ int main(void)
 		DrawRay(ray, RED);
 		*/
 
-		if (IsKeyDown(KEY_G))
+		float intersectionMinX = fmax(playerBoundingBox.min.x, objectBoundingBox.min.x);
+		float intersectionMinY = fmax(playerBoundingBox.min.y, objectBoundingBox.min.y);
+		float intersectionMinZ = fmax(playerBoundingBox.min.z, objectBoundingBox.min.z);
+
+		float intersectionMaxX = fmin(playerBoundingBox.max.x, objectBoundingBox.max.x);
+		float intersectionMaxY = fmin(playerBoundingBox.max.y, objectBoundingBox.max.y);
+		float intersectionMaxZ = fmin(playerBoundingBox.max.z, objectBoundingBox.max.z);
+
+		float overlapX = intersectionMaxX - intersectionMinX;
+		float overlapY = intersectionMaxY - intersectionMinY;
+		float overlapZ = intersectionMaxZ - intersectionMinZ;
+
+		bool xCollision = false;
+		bool yCollision = false;
+		bool zCollision = false;
+
+		if (playerBoundingBox.min.x <= objectBoundingBox.max.x && playerBoundingBox.max.x >= objectBoundingBox.min.x)
 		{
-
-			Vector3 direction = Vector3Subtract(
-			collisionInfo2.point,
-			player.getCamera().position);
-
-			direction.y = 0.0f;
-
-			printf("TESTE: (%.2f, %.2f, %.2f)\n", direction.x, direction.y, direction.z);
-
-			UpdateCameraPro(
-				player.getCameraPointer(),
-				Vector3Normalize(direction),
-				(Vector3){
-					0.0f, // Rotation: yaw
-					0.0f, // Rotation: pitch
-					0.0f  // Rotation: roll
-					
-				},
-				0.0f // Move to target (zoom)
-			);
+			xCollision = true;
 		}
 
-		if (collision)
+		if (playerBoundingBox.min.y <= objectBoundingBox.max.y && playerBoundingBox.max.y >= objectBoundingBox.min.y)
 		{
+			yCollision = true;
+		}
 
-			
+		if (playerBoundingBox.min.z <= objectBoundingBox.max.z && playerBoundingBox.max.z >= objectBoundingBox.min.z)
+		{
+			zCollision = true;
+		}
+
+		if (xCollision && yCollision && zCollision)
+		{	
 			Vector3 movement = player.getLastMovement();
-			
-			float intersectionMinX = fmax(playerBoundingBox.min.x, objectBoundingBox.min.x);
-			float intersectionMinY = fmax(playerBoundingBox.min.y, objectBoundingBox.min.y);
-			float intersectionMinZ = fmax(playerBoundingBox.min.z, objectBoundingBox.min.z);
-
-			float intersectionMaxX = fmin(playerBoundingBox.max.x, objectBoundingBox.max.x);
-			float intersectionMaxY = fmin(playerBoundingBox.max.y, objectBoundingBox.max.y);
-			float intersectionMaxZ = fmin(playerBoundingBox.max.z, objectBoundingBox.max.z);
 
 			Vector3 intersectionMin = (Vector3) {
 				intersectionMinX,
@@ -347,10 +344,14 @@ int main(void)
 
 			DrawBoundingBox(intersectionBoundingBox, YELLOW);
 
-			printf("Movement: (%.2f, %.2f, %.2f)\n", player.getLastMovement().x, player.getLastMovement().y, player.getLastMovement().z);
-			printf("collision Point: (%.2f, %.2f, %.2f)\n", collisionInfo.point.x, collisionInfo.point.y, collisionInfo.point.z);
-			printf("collision Point 2: (%.2f, %.2f, %.2f)\n", collisionInfo2.point.x, collisionInfo2.point.y, collisionInfo2.point.z);
-
+			/*
+			printf("intersectionMinX: %.2f\n", intersectionMinX);
+			printf("intersectionMinY: %.2f\n", intersectionMinY);
+			printf("intersectionMinZ: %.2f\n", intersectionMinZ);
+			printf("intersectionMaxX: %.2f\n", intersectionMaxX);
+			printf("intersectionMaxY: %.2f\n", intersectionMaxY);
+			printf("intersectionMaxZ: %.2f\n", intersectionMaxZ);
+            */
 			/*
 			Vector3 invertedMovement = (Vector3){
 				player.getLastMovement().x * -1,
@@ -389,6 +390,10 @@ int main(void)
 		// Draw info boxes
 		DrawRectangle(5, 5, 330, 100, Fade(SKYBLUE, 0.5f));
 		DrawRectangleLines(5, 5, 330, 100, BLUE);
+
+		DrawText(TextFormat("overlapX %.2f", overlapX), 15, 150, 10, BLACK);
+		DrawText(TextFormat("overlapY %.2f", overlapY), 15, 165, 10, BLACK);
+		DrawText(TextFormat("overlapZ %.2f", overlapZ), 15, 180, 10, BLACK);
 
 		DrawText("Camera controls:", 15, 15, 10, BLACK);
 		DrawText("- Move keys: W, A, S, D, Space, Left-Ctrl", 15, 30, 10, BLACK);
