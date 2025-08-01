@@ -220,17 +220,15 @@ int main(void)
 																1.0f + 1.0f,
 																0.0f + 1.0f}};
 
-		BoundingBox objectBoundingBoxM = (BoundingBox){(Vector3){0.0f - 1.0f - 0.25f,
-																1.0f - 1.0f - 0.5f,
-																0.0f - 1.0f - 0.25f},
-													  (Vector3){0.0f + 1.0f + 0.25f,
-																1.0f + 1.0f + 0.5f,
-																0.0f + 1.0f + 0.25f}};
+
+		DrawCube((Vector3){
+			(objectBoundingBox.min.x + objectBoundingBox.max.x) / 2, 
+			(objectBoundingBox.min.y + objectBoundingBox.max.y) / 2, 
+			(objectBoundingBox.min.z + objectBoundingBox.max.z) / 2
+		}, 1.0f, 1.0f, 1.0f, DARKBLUE);	
 
 		
 		DrawBoundingBox(objectBoundingBox, BLUE);
-
-		DrawBoundingBox(objectBoundingBoxM, RED);
 
 		/*
 		// Calculate Minkowski sum of playerBoundingBox and objectBoundingBox
@@ -271,10 +269,6 @@ int main(void)
 		// DrawPoint3D(collisionInfo.point, BLACK);
 
 		DrawRay(ray, RED);
-
-		RayCollision collisionInfo2 = GetRayCollisionBox(ray, objectBoundingBoxM);
-
-		DrawCube(collisionInfo2.point, 0.1f, 0.1f, 0.1f, DARKBROWN);
 
 		/*
 		Vector3 playerPos = player.getCamera().position;
@@ -323,6 +317,37 @@ int main(void)
 
 		if (xCollision && yCollision && zCollision)
 		{	
+
+			char overlapAxis = ' ';
+			float direction = 0.0f;
+
+			if (overlapX < overlapZ && overlapX < overlapY)
+			{
+				overlapAxis = 'x';
+				direction = ((objectBoundingBox.min.x + objectBoundingBox.max.x) / 2) - ((playerBoundingBox.min.x + playerBoundingBox.max.x) / 2);
+			}
+
+			if (overlapZ < overlapX && overlapZ < overlapY)
+			{
+				overlapAxis = 'z';
+				direction = ((objectBoundingBox.min.z + objectBoundingBox.max.z) / 2) - ((playerBoundingBox.min.z + playerBoundingBox.max.z) / 2);
+			}
+
+			if (overlapY < overlapZ && overlapY < overlapX)
+			{
+				overlapAxis = 'y';
+				direction = ((objectBoundingBox.min.y + objectBoundingBox.max.y) / 2) - ((playerBoundingBox.min.y + playerBoundingBox.max.y) / 2);
+			}
+
+			if (direction > 0)
+			{
+				direction = -1.0f;
+			}
+			else
+			{
+				direction = 1.0f;
+			}
+
 			Vector3 movement = player.getLastMovement();
 
 			Vector3 intersectionMin = (Vector3) {
@@ -344,32 +369,25 @@ int main(void)
 
 			DrawBoundingBox(intersectionBoundingBox, YELLOW);
 
-			/*
-			printf("intersectionMinX: %.2f\n", intersectionMinX);
-			printf("intersectionMinY: %.2f\n", intersectionMinY);
-			printf("intersectionMinZ: %.2f\n", intersectionMinZ);
-			printf("intersectionMaxX: %.2f\n", intersectionMaxX);
-			printf("intersectionMaxY: %.2f\n", intersectionMaxY);
-			printf("intersectionMaxZ: %.2f\n", intersectionMaxZ);
-            */
-			/*
 			Vector3 invertedMovement = (Vector3){
-				player.getLastMovement().x * -1,
-				player.getLastMovement().y * -1,
-				player.getLastMovement().z * -1,
+				0,0,0
 			};
 
-			UpdateCameraPro(
-				player.getCameraPointer(),
-				invertedMovement,
-				(Vector3){
-					0.0f, // Rotation: yaw
-					0.0f, // Rotation: pitch
-					0.0f  // Rotation: roll
-				},
-				0.0f // Move to target (zoom)
-			);
-			*/
+			if(overlapAxis == 'x'){
+				player.getCameraPointer()->position.x += overlapX * direction;
+				player.getCameraPointer()->target.x += overlapX * direction;
+			}
+			if(overlapAxis == 'y')
+			{
+				player.getCameraPointer()->position.y += overlapY * direction;
+				player.getCameraPointer()->target.y += overlapY * direction;
+			}
+			if(overlapAxis == 'z')
+			{
+				player.getCameraPointer()->position.z += overlapZ * direction;
+				player.getCameraPointer()->target.z += overlapZ * direction;
+			}
+			
 			DrawBoundingBox(playerBoundingBox, RED);
 		}
 		else
